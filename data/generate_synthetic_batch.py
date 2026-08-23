@@ -175,6 +175,15 @@ def generate_synthetic_payments(count: int = 75, seed: int = 42) -> List[Dict[st
     return records
 
 
+def save_dataset(records: List[Dict[str, Any]], output_path: str = None) -> str:
+    """Save generated records to JSON file."""
+    if output_path is None:
+        output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "synthetic_failed_payments.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
+    return output_path
+
+
 def insert_into_postgres(records: List[Dict[str, Any]]) -> int:
     """
     Insert or upsert generated synthetic payment records directly into PostgreSQL.

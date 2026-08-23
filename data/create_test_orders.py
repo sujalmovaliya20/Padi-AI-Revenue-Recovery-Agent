@@ -105,6 +105,13 @@ def create_test_orders(
     return mappings
 
 
+def provision_test_orders(records=None, limit: int = 15) -> dict:
+    """Helper to provision test orders programmatically."""
+    inp = str(Path(__file__).resolve().parent / "synthetic_failed_payments.json")
+    out = str(Path(__file__).resolve().parent / "razorpay_order_mappings.json")
+    return create_test_orders(input_file=inp, output_file=out, limit=limit)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Create Razorpay test-mode orders for synthetic failed payments.")
     parser.add_argument(

@@ -495,3 +495,68 @@ async def get_batch_metrics(batch_id: str):
         escalation_rate=escalation_rate,
         breakdown_by_fail_category=categories,
     )
+
+
+@router.post("/reset")
+async def reset_demo_dataset():
+    """
+    Reset Demo Endpoint:
+    Clears all active batches from memory, generates 75 fresh synthetic failed payments,
+    re-provisions live Razorpay test-mode orders, and prepares a clean slate for live judge demos.
+    """
+    global BATCH_STORE
+    BATCH_STORE.clear()
+
+    try:
+        from data.generate_synthetic_batch import generate_synthetic_payments, save_dataset
+        fresh_data = generate_synthetic_payments(count=75)
+        save_dataset(fresh_data)
+        logger.info("Fresh synthetic payment dataset (75 records) generated for demo reset.")
+
+        # Provision fresh test orders
+        from data.create_test_orders import provision_test_orders
+        provision_test_orders(fresh_data, limit=15)
+
+        return {
+            "status": "reset",
+            "message": "Demo reset successfully with 75 fresh failed payments & Razorpay test orders.",
+            "total_payments": len(fresh_data),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        logger.error("Error during demo reset: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to reset demo dataset: {e}",
+        )
+
+
+@router.get("/{batch_id}/export")
+async def export_batch_summary(batch_id: str):
+    """
+    Export Full Measured Results:
+    Returns the comprehensive batch metadata, aggregate metrics, and every payment's
+    complete chronological node-by-node audit trail for transparent verification.
+    """
+    record = BATCH_STORE.get(batch_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Batch ID '{batch_id}' not found.",
+        )
+
+    metrics = await get_batch_metrics(batch_id)
+
+    return {
+        "export_generated_at": datetime.now(timezone.utc).isoformat(),
+        "batch_id": record.batch_id,
+        "batch_status": record.status,
+        "created_at": record.created_at,
+        "completed_at": record.completed_at,
+        "total_payments": record.total_count,
+        "processed_payments": record.processed_count,
+        "counts_by_status": record.counts_by_status,
+        "aggregate_metrics": metrics.model_dump(),
+        "payments_audit_trail": record.results,
+    }
+
