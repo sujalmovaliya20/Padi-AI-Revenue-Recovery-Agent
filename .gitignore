@@ -1,0 +1,25 @@
+# Dependency locks
+node_modules/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+*.egg-info/
+
+# Docker
+pgdata/
