@@ -14,7 +14,7 @@
 ├─────────────────────────────────────────────────────┤
 │  Database (PostgreSQL 16)                            │  :5432
 └─────────────────────────────────────────────────────┘
-          ↕ Razorpay API          ↕ LLM (OpenAI / Anthropic)
+          ↕ Razorpay API          ↕ LLM (NVIDIA NIM)
 ```
 
 ## Tech Stack
@@ -25,7 +25,7 @@
 | Backend    | Python 3.11, FastAPI, LangGraph, LangChain, Pydantic v2     |
 | Database   | PostgreSQL 16 (Docker), SQLAlchemy 2.0, Alembic             |
 | Payments   | Razorpay Python SDK                                         |
-| AI / Agent | LangGraph state machine, OpenAI / Anthropic                 |
+| AI / Agent | LangGraph state machine, NVIDIA NIM (meta/llama-3.1-70b)    |
 | DevOps     | Docker Compose, python-dotenv                               |
 
 ## Project Structure
@@ -113,14 +113,15 @@ docker compose up --build
 
 ## Environment Variables
 
-| Variable              | Description                              |
-| --------------------- | ---------------------------------------- |
-| `DATABASE_URL`        | PostgreSQL connection string             |
-| `RAZORPAY_KEY_ID`     | Razorpay test/live key ID                |
-| `RAZORPAY_KEY_SECRET` | Razorpay test/live key secret            |
-| `OPENAI_API_KEY`      | OpenAI API key (for LangGraph agent)     |
-| `ANTHROPIC_API_KEY`   | Anthropic API key (alternative provider) |
-| `DEBUG`               | Enable debug mode (default: `true`)      |
+| Variable              | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `DATABASE_URL`        | PostgreSQL connection string                                     |
+| `RAZORPAY_KEY_ID`     | Razorpay test/live key ID                                        |
+| `RAZORPAY_KEY_SECRET` | Razorpay test/live key secret                                    |
+| `NVIDIA_NIM_API_KEY`  | NVIDIA NIM API key                                               |
+| `NVIDIA_NIM_BASE_URL` | NVIDIA NIM base URL (default: https://integrate.api.nvidia.com/v1)|
+| `NVIDIA_NIM_MODEL`    | NVIDIA NIM Model (e.g. meta/llama-3.1-70b-instruct)              |
+| `DEBUG`               | Enable debug mode (default: `true`)                              |
 
 ## API Endpoints
 
