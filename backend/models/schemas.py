@@ -35,6 +35,7 @@ class PaymentStatus(str, Enum):
     RECOVERED = "recovered"
     ESCALATED = "escalated"
     STOPPED = "stopped"
+    AWAITING_PROMISE = "awaiting_promise"
 
 
 class InterventionAction(str, Enum):

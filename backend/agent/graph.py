@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 import os
+import random
 import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, TypedDict
@@ -115,6 +116,7 @@ class AgentState(TypedDict, total=False):
     reviewed_by: Optional[str]
     reviewed_at: Optional[str]
     summary_explanation: Optional[str]
+    stop_reason_category: Optional[str]
 
 
 # ── Node 1: classify_failure ──────────────────────────────────────
@@ -412,6 +414,7 @@ def check_gate(state: AgentState) -> AgentState:
         reason_str = f"Gate Check REJECTED: Action '{action}' violates compliance whitelist for category '{category}'"
         state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
         state["status"] = PaymentStatus.ESCALATED.value
+        state["stop_reason_category"] = "compliance_block"
         state["intervention_history"].append({
             "node": "check_gate",
             "decision": "REJECTED",
@@ -426,6 +429,7 @@ def check_gate(state: AgentState) -> AgentState:
         reason_str = f"Gate Check REJECTED: Retry count {retry_count} reached maximum allowed limit ({MAX_ALLOWED_RETRIES})"
         state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
         state["status"] = PaymentStatus.ESCALATED.value
+        state["stop_reason_category"] = "max_retries"
         state["intervention_history"].append({
             "node": "check_gate",
             "decision": "REJECTED",
@@ -465,6 +469,7 @@ def check_gate(state: AgentState) -> AgentState:
             state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
             state["status"] = PaymentStatus.ESCALATED.value
             state["stop_reason"] = "rejected_by_human_reviewer"
+            state["stop_reason_category"] = "compliance_block"
             state["requires_human_approval"] = False
             state["intervention_history"].append({
                 "node": "check_gate",
@@ -724,23 +729,39 @@ def execute_action(state: AgentState) -> AgentState:
 def track_promise(state: AgentState) -> AgentState:
     """
     Node 5: Track customer promise-to-pay signal.
-    If detected, logs promise date and adjusts scheduling.
+    Simulates ~20% of payments going through switch_payment_method or
+    retry_later receiving a customer "I'll pay by date X" promise.
+    When triggered, sets promise_to_pay_date and pauses the recovery loop
+    with status = awaiting_promise.
     """
-    # For prototype simulation: check if payment_id has promise flag or simulate conditionally
-    customer_name = state.get("customer_name", "")
-    fail_category = state.get("fail_category", "")
+    action = state.get("current_action", "")
+    customer_name = state.get("customer_name", "Valued Customer")
 
-    # Mock customer promise-to-pay signal for switch_payment_method / retry_later
-    if state.get("current_action") == InterventionAction.SWITCH_PAYMENT_METHOD.value and "Kapoor" in customer_name:
+    # Only consider promise for relevant customer-facing actions
+    promise_eligible_actions = [
+        InterventionAction.SWITCH_PAYMENT_METHOD.value,
+        InterventionAction.RETRY_LATER.value,
+    ]
+
+    if action in promise_eligible_actions and random.random() < 0.20:
+        # Customer promises to pay within 3 days
         promise_date = (datetime.now(timezone.utc) + timedelta(days=3)).strftime("%Y-%m-%d")
         state["promise_to_pay_date"] = promise_date
+        state["status"] = PaymentStatus.AWAITING_PROMISE.value
         state["intervention_history"].append({
             "node": "track_promise",
             "decision": "PROMISE_LOGGED",
             "promise_to_pay_date": promise_date,
-            "reason": f"Customer {customer_name} promised to fulfill payment by {promise_date}.",
+            "reason": (
+                f"Customer {customer_name} promised to fulfill payment by {promise_date}. "
+                f"Recovery loop paused — status set to awaiting_promise."
+            ),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
+        logger.info(
+            "Payment %s: customer %s promise-to-pay logged for %s — status → awaiting_promise",
+            state.get("payment_id"), customer_name, promise_date,
+        )
     return state
 
 
@@ -769,6 +790,7 @@ def check_stop_rule(state: AgentState) -> AgentState:
     status = state.get("status", PaymentStatus.PENDING.value)
     retry_count = int(state.get("retry_count", 0))
     amount = float(state.get("amount", 0.0))
+    category = state.get("fail_category", "unknown")
 
     # Calculate days since fail
     fail_ts_str = state.get("fail_timestamp")
@@ -780,6 +802,11 @@ def check_stop_rule(state: AgentState) -> AgentState:
         except Exception:
             days_since_fail = 0.0
 
+    # 0. Awaiting customer promise — pause recovery loop
+    if status == PaymentStatus.AWAITING_PROMISE.value:
+        state["stop_reason"] = "awaiting_customer_promise"
+        return state
+
     # 1. Recovered
     if status == PaymentStatus.RECOVERED.value:
         state["stop_reason"] = "payment_recovered"
@@ -787,30 +814,48 @@ def check_stop_rule(state: AgentState) -> AgentState:
 
     # 2. Escalated
     if status == PaymentStatus.ESCALATED.value:
-        state["stop_reason"] = "escalated_to_human"
+        if not state.get("stop_reason_category"):
+            if category == "mandate_revoked" or "mandate" in category or "compliance" in str(state.get("stop_reason", "")).lower():
+                state["stop_reason_category"] = "compliance_block"
+        state["stop_reason"] = state.get("stop_reason") or "escalated_to_human"
         return state
 
-    # 3. Max retries exceeded
-    if retry_count >= MAX_ALLOWED_RETRIES:
-        state["stop_reason"] = f"max_retries_exceeded ({retry_count}/{MAX_ALLOWED_RETRIES})"
-        state["status"] = PaymentStatus.STOPPED.value
-        state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
-        return state
-
-    # 4. Max window exceeded (7 days)
-    if days_since_fail > MAX_DAYS_RECOVERY_WINDOW:
-        state["stop_reason"] = f"max_recovery_window_exceeded ({days_since_fail:.1f} days > {MAX_DAYS_RECOVERY_WINDOW} days)"
-        state["status"] = PaymentStatus.STOPPED.value
-        state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
-        return state
-
-    # 5. Cost-aware rule: retry costs > 30% of payment amount
+    # 3. Cost-aware rule: retry costs > 30% of payment amount
+    # Evaluated first to protect unit economics on low-value transactions
     estimated_total_cost = retry_count * ESTIMATED_COST_PER_RETRY
     cost_ceiling = amount * 0.30
-    if estimated_total_cost > cost_ceiling:
+    if retry_count > 0 and estimated_total_cost > cost_ceiling:
         state["stop_reason"] = (
             f"cost_ceiling_exceeded (estimated cost ₹{estimated_total_cost:.0f} > 30% of ₹{amount:.0f})"
         )
+        state["stop_reason_category"] = "cost_exceeds_value"
+        state["status"] = PaymentStatus.STOPPED.value
+        state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
+        state["intervention_history"].append({
+            "node": "check_stop_rule",
+            "decision": "STOP_COST_EXCEEDS_VALUE",
+            "stop_reason_category": "cost_exceeds_value",
+            "reason": (
+                f"Cost-aware stop triggered: Estimated cumulative retry friction (₹{estimated_total_cost:.0f}) "
+                f"exceeds 30% economic ceiling of invoice (₹{cost_ceiling:.0f} / ₹{amount:.0f}). "
+                f"Automated retries halted after {retry_count} attempt(s) to protect merchant margins."
+            ),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        return state
+
+    # 4. Max retries exceeded
+    if retry_count >= MAX_ALLOWED_RETRIES:
+        state["stop_reason"] = f"max_retries_exceeded ({retry_count}/{MAX_ALLOWED_RETRIES})"
+        state["stop_reason_category"] = "max_retries"
+        state["status"] = PaymentStatus.STOPPED.value
+        state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
+        return state
+
+    # 5. Max window exceeded (7 days)
+    if days_since_fail > MAX_DAYS_RECOVERY_WINDOW:
+        state["stop_reason"] = f"max_recovery_window_exceeded ({days_since_fail:.1f} days > {MAX_DAYS_RECOVERY_WINDOW} days)"
+        state["stop_reason_category"] = "max_days"
         state["status"] = PaymentStatus.STOPPED.value
         state["current_action"] = InterventionAction.ESCALATE_HUMAN.value
         return state
@@ -866,6 +911,7 @@ def generate_summary(state: AgentState) -> str:
     recovered_amt = float(state.get("recovered_amount", 0.0))
     retry_count = int(state.get("retry_count", 0))
     stop_reason = state.get("stop_reason", "")
+    stop_reason_category = state.get("stop_reason_category", "")
     reviewed_by = state.get("reviewed_by")
 
     # ── Part 1: Category + short reason ──
@@ -898,16 +944,19 @@ def generate_summary(state: AgentState) -> str:
         else:
             part3 = "escalated to human specialist queue"
     elif status == PaymentStatus.STOPPED.value:
-        if "cost_ceiling" in (stop_reason or ""):
-            part3 = f"recovery halted (retry cost exceeds 30% of \u20b9{amount:,.0f} invoice)"
-        elif "max_retries" in (stop_reason or ""):
+        if stop_reason_category == "cost_exceeds_value" or "cost_ceiling" in (stop_reason or ""):
+            part3 = f"stopped after {retry_count} {'retry' if retry_count == 1 else 'retries'}: further attempts would cost more than the \u20b9{amount:,.0f} payment is worth"
+        elif stop_reason_category == "max_retries" or "max_retries" in (stop_reason or ""):
             part3 = f"stopped after {retry_count} retries exceeded limit"
-        elif "max_recovery_window" in (stop_reason or ""):
+        elif stop_reason_category == "max_days" or "max_recovery_window" in (stop_reason or ""):
             part3 = "stopped (recovery window expired)"
         else:
             part3 = "recovery stopped"
     elif status == "pending_approval":
         part3 = f"paused at \u20b9{amount:,.2f} approval gate, awaiting human authorization"
+    elif status == PaymentStatus.AWAITING_PROMISE.value:
+        promise_date = state.get("promise_to_pay_date", "unknown")
+        part3 = f"recovery paused — customer promised to pay by {promise_date}"
     elif status == PaymentStatus.IN_PROGRESS.value:
         if "retry_scheduled" in (stop_reason or ""):
             part3 = "retry scheduled, awaiting trigger"
@@ -930,6 +979,7 @@ def route_after_stop_rule(state: AgentState) -> str:
         PaymentStatus.RECOVERED.value,
         PaymentStatus.ESCALATED.value,
         PaymentStatus.STOPPED.value,
+        PaymentStatus.AWAITING_PROMISE.value,
     ]:
         return END
     
@@ -1041,6 +1091,7 @@ def run_recovery_batch(
             "reviewed_by": None,
             "reviewed_at": None,
             "summary_explanation": None,
+            "stop_reason_category": None,
         }
 
         # Thread config for checkpointer persistence

@@ -64,6 +64,8 @@ def root():
             "batch_results": "GET /batch/{batch_id}/results",
             "batch_audit": "GET /batch/{batch_id}/audit/{payment_id}",
             "batch_metrics": "GET /batch/{batch_id}/metrics",
+            "promise_tracker": "GET /batch/{batch_id}/promise-tracker",
+            "fast_forward": "POST /batch/{batch_id}/fast-forward",
             "resilience_test": "POST /demo/trigger-resilience-test",
             "docs": "/docs",
         },

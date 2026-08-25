@@ -15,9 +15,10 @@ import asyncio
 import json
 import logging
 import os
+import random
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -66,6 +67,7 @@ class BatchRecord:
             "recovered": 0,
             "escalated": 0,
             "stopped": 0,
+            "awaiting_promise": 0,
         }
         self.error: Optional[str] = None
 
@@ -156,8 +158,51 @@ class AuditTrailResponse(BaseModel):
     reviewed_by: Optional[str] = None
     reviewed_at: Optional[str] = None
     summary_explanation: Optional[str] = None
+    stop_reason_category: Optional[str] = None
     audit_trail: List[Dict[str, Any]]
     retry_history: List[Dict[str, Any]]
+
+
+class PromiseTrackerItem(BaseModel):
+    payment_id: str
+    customer_id: Optional[str] = None
+    customer_name: Optional[str] = None
+    amount: float
+    fail_category: Optional[str] = None
+    current_action: Optional[str] = None
+    promise_to_pay_date: Optional[str] = None
+    status: str
+    summary_explanation: Optional[str] = None
+
+
+class PromiseTrackerResponse(BaseModel):
+    batch_id: str
+    total_awaiting: int
+    promise_payments: List[PromiseTrackerItem]
+
+
+class FastForwardRequest(BaseModel):
+    days_offset: int = Field(default=5, ge=1, le=30, description="Number of simulated days to fast-forward")
+
+
+class FastForwardTransition(BaseModel):
+    payment_id: str
+    customer_name: Optional[str] = None
+    amount: float
+    promise_date: Optional[str] = None
+    outcome: str  # "promise_kept" or "promise_broken"
+    new_status: str
+    reason: str
+
+
+class FastForwardResponse(BaseModel):
+    batch_id: str
+    days_forwarded: int
+    simulated_date: str
+    total_evaluated: int
+    promises_kept: int
+    promises_broken: int
+    transitions: List[FastForwardTransition]
 
 
 class CategoryMetric(BaseModel):
@@ -171,6 +216,7 @@ class CategoryMetric(BaseModel):
     in_progress_count: int
     stopped_count: int
     pending_approval_count: int = 0
+    awaiting_promise_count: int = 0
 
 
 class BatchMetricsResponse(BaseModel):
@@ -181,6 +227,13 @@ class BatchMetricsResponse(BaseModel):
     recovery_rate_pct: float
     avg_retries_to_recovery: float
     escalation_rate: float
+    baseline_recovered: float = 0.0
+    baseline_recovery_rate: float = 0.0
+    agent_recovered: float = 0.0
+    agent_recovery_rate: float = 0.0
+    improvement: float = 0.0
+    cost_aware_stops: int = 0
+    estimated_savings: float = 0.0
     breakdown_by_fail_category: Dict[str, CategoryMetric]
 
 
@@ -288,6 +341,7 @@ def execute_batch_in_background(batch_id: str):
             "recovered_amount": 0.0,
             "status": PaymentStatus.PENDING.value,
             "stop_reason": None,
+            "stop_reason_category": None,
             "promise_to_pay_date": None,
         }
 
@@ -442,6 +496,7 @@ async def get_payment_audit_trail(batch_id: str, payment_id: str):
         promise_to_pay_date=payment_state.get("promise_to_pay_date"),
         retry_count=int(payment_state.get("retry_count", 0)),
         summary_explanation=payment_state.get("summary_explanation"),
+        stop_reason_category=payment_state.get("stop_reason_category"),
         audit_trail=payment_state.get("intervention_history", []),
         retry_history=payment_state.get("retry_history", []),
     )
@@ -456,6 +511,7 @@ async def get_batch_metrics(batch_id: str):
     - recovery_rate_pct
     - avg_retries_to_recovery
     - escalation_rate
+    - cost_aware_stops & estimated_savings
     - breakdown_by_fail_category
     """
     record = BATCH_STORE.get(batch_id)
@@ -476,6 +532,13 @@ async def get_batch_metrics(batch_id: str):
             recovery_rate_pct=0.0,
             avg_retries_to_recovery=0.0,
             escalation_rate=0.0,
+            baseline_recovered=0.0,
+            baseline_recovery_rate=0.0,
+            agent_recovered=0.0,
+            agent_recovery_rate=0.0,
+            improvement=0.0,
+            cost_aware_stops=0,
+            estimated_savings=0.0,
             breakdown_by_fail_category={},
         )
 
@@ -490,6 +553,19 @@ async def get_batch_metrics(batch_id: str):
     # Average retries for recovered payments
     recovered_retries = [r.get("retry_count", 1) for r in results if r.get("status") == PaymentStatus.RECOVERED.value]
     avg_retries = round(sum(recovered_retries) / len(recovered_retries), 2) if recovered_retries else 0.0
+
+    # Cost-aware stop rule metrics
+    COST_PER_RETRY_ATTEMPT = 150.00  # API + friction + messaging overhead per retry attempt
+    cost_aware_stopped = [
+        r for r in results
+        if r.get("stop_reason_category") == "cost_exceeds_value" or "cost_ceiling" in str(r.get("stop_reason", ""))
+    ]
+    cost_aware_stops = len(cost_aware_stopped)
+    # Savings = retry attempts avoided before hitting max retry limit (3 attempts)
+    estimated_savings = sum(
+        max(1, 3 - int(r.get("retry_count", 1))) * COST_PER_RETRY_ATTEMPT
+        for r in cost_aware_stopped
+    )
 
     # Breakdown by category
     categories: Dict[str, CategoryMetric] = {}
@@ -526,6 +602,8 @@ async def get_batch_metrics(batch_id: str):
             m.stopped_count += 1
         elif st == "pending_approval" or r.get("requires_human_approval"):
             m.pending_approval_count += 1
+        elif st == PaymentStatus.AWAITING_PROMISE.value:
+            m.awaiting_promise_count += 1
 
     # Compute percentage per category
     for cat, m in categories.items():
@@ -541,6 +619,13 @@ async def get_batch_metrics(batch_id: str):
         recovery_rate_pct=recovery_rate_pct,
         avg_retries_to_recovery=avg_retries,
         escalation_rate=escalation_rate,
+        baseline_recovered=0.0,
+        baseline_recovery_rate=0.0,
+        agent_recovered=round(total_recovered, 2),
+        agent_recovery_rate=recovery_rate_pct,
+        improvement=round(total_recovered, 2),
+        cost_aware_stops=cost_aware_stops,
+        estimated_savings=round(estimated_savings, 2),
         breakdown_by_fail_category=categories,
     )
 
@@ -718,6 +803,7 @@ async def approve_or_reject_payment(
         "recovered": 0,
         "escalated": 0,
         "stopped": 0,
+        "awaiting_promise": 0,
     }
     for res in record.results:
         st = res.get("status", "pending")
@@ -743,3 +829,197 @@ async def approve_or_reject_payment(
     }
 
 
+# ── Promise Tracker & Fast-Forward Endpoints ──────────────────────
+
+
+def _recalculate_batch_counts(record: BatchRecord) -> None:
+    """Recompute status counts from results list (shared helper)."""
+    counts = {
+        "pending": 0,
+        "pending_approval": 0,
+        "in_progress": 0,
+        "recovered": 0,
+        "escalated": 0,
+        "stopped": 0,
+        "awaiting_promise": 0,
+    }
+    for res in record.results:
+        st = res.get("status", "pending")
+        if st in counts:
+            counts[st] += 1
+        elif res.get("requires_human_approval"):
+            counts["pending_approval"] += 1
+        else:
+            counts["in_progress"] += 1
+    record.counts_by_status = counts
+
+
+@router.get("/{batch_id}/promise-tracker", response_model=PromiseTrackerResponse)
+async def get_promise_tracker(batch_id: str):
+    """
+    Returns all payments currently in awaiting_promise state for this batch,
+    along with their promised payment dates.
+    """
+    record = BATCH_STORE.get(batch_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Batch ID '{batch_id}' not found.",
+        )
+
+    items = []
+    for p in record.results:
+        if p.get("status") == PaymentStatus.AWAITING_PROMISE.value:
+            items.append(PromiseTrackerItem(
+                payment_id=p["payment_id"],
+                customer_id=p.get("customer_id"),
+                customer_name=p.get("customer_name"),
+                amount=float(p.get("amount", 0.0)),
+                fail_category=p.get("fail_category"),
+                current_action=p.get("current_action"),
+                promise_to_pay_date=p.get("promise_to_pay_date"),
+                status=p.get("status", "awaiting_promise"),
+                summary_explanation=p.get("summary_explanation"),
+            ))
+
+    return PromiseTrackerResponse(
+        batch_id=batch_id,
+        total_awaiting=len(items),
+        promise_payments=items,
+    )
+
+
+@router.post("/{batch_id}/fast-forward", response_model=FastForwardResponse)
+async def fast_forward_batch(batch_id: str, body: Optional[FastForwardRequest] = None):
+    """
+    Time-simulation endpoint for demo purposes.
+    Simulates N days passing and re-evaluates all awaiting_promise payments:
+    - If promise_to_pay_date is now in the past:
+      - ~50% chance: simulate payment success → mark recovered (promise kept)
+      - ~50% chance: still unpaid → auto-escalate with reason "promise_broken"
+    Updates batch state in-place and returns transition summary.
+    """
+    record = BATCH_STORE.get(batch_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Batch ID '{batch_id}' not found.",
+        )
+
+    days_offset = body.days_offset if body else 5
+    simulated_now = datetime.now(timezone.utc) + timedelta(days=days_offset)
+    simulated_date_str = simulated_now.strftime("%Y-%m-%d")
+
+    transitions: List[FastForwardTransition] = []
+    promises_kept = 0
+    promises_broken = 0
+    total_evaluated = 0
+
+    for i, payment in enumerate(record.results):
+        if payment.get("status") != PaymentStatus.AWAITING_PROMISE.value:
+            continue
+
+        promise_date_str = payment.get("promise_to_pay_date")
+        if not promise_date_str:
+            continue
+
+        # Parse promise date and check if simulated time has passed it
+        try:
+            promise_date = datetime.strptime(promise_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            continue
+
+        if simulated_now < promise_date:
+            continue  # Promise date hasn't passed yet even with fast-forward
+
+        total_evaluated += 1
+        payment_id = payment.get("payment_id", "unknown")
+        customer_name = payment.get("customer_name", "Customer")
+        amount = float(payment.get("amount", 0.0))
+
+        # Ensure intervention_history exists
+        if not payment.get("intervention_history"):
+            payment["intervention_history"] = []
+
+        # Simulate outcome: ~50% kept, ~50% broken
+        if random.random() < 0.50:
+            # ── Promise Kept: Customer paid ──
+            payment["status"] = PaymentStatus.RECOVERED.value
+            payment["recovered_amount"] = amount
+            payment["stop_reason"] = "promise_kept_payment_received"
+            payment["intervention_history"].append({
+                "node": "fast_forward_evaluation",
+                "decision": "PROMISE_KEPT",
+                "reason": (
+                    f"Fast-forward +{days_offset} days (simulated date: {simulated_date_str}). "
+                    f"Promise date {promise_date_str} has passed. "
+                    f"Customer {customer_name} fulfilled their promise — payment ₹{amount:.2f} received."
+                ),
+                "timestamp": simulated_now.isoformat(),
+            })
+            payment["summary_explanation"] = (
+                f"Customer promised to pay by {promise_date_str} → "
+                f"promise kept → ₹{amount:,.2f} recovered."
+            )
+            transitions.append(FastForwardTransition(
+                payment_id=payment_id,
+                customer_name=customer_name,
+                amount=amount,
+                promise_date=promise_date_str,
+                outcome="promise_kept",
+                new_status="recovered",
+                reason=f"Customer fulfilled promise by {promise_date_str}. Payment recovered.",
+            ))
+            promises_kept += 1
+        else:
+            # ── Promise Broken: Customer did not pay ──
+            payment["status"] = PaymentStatus.ESCALATED.value
+            payment["stop_reason"] = "promise_broken"
+            payment["current_action"] = "escalate_human"
+            payment["intervention_history"].append({
+                "node": "fast_forward_evaluation",
+                "decision": "PROMISE_BROKEN",
+                "reason": (
+                    f"Fast-forward +{days_offset} days (simulated date: {simulated_date_str}). "
+                    f"Promise date {promise_date_str} has passed. "
+                    f"Customer {customer_name} did NOT fulfill promise — "
+                    f"auto-escalated to human specialist queue."
+                ),
+                "timestamp": simulated_now.isoformat(),
+            })
+            payment["summary_explanation"] = (
+                f"Customer promised to pay by {promise_date_str} → "
+                f"promise broken → escalated to human review."
+            )
+            transitions.append(FastForwardTransition(
+                payment_id=payment_id,
+                customer_name=customer_name,
+                amount=amount,
+                promise_date=promise_date_str,
+                outcome="promise_broken",
+                new_status="escalated",
+                reason=f"Customer broke promise (due {promise_date_str}). Auto-escalated.",
+            ))
+            promises_broken += 1
+
+        # Persist updated payment back into batch
+        record.results[i] = payment
+        record.payments_by_id[payment_id] = payment
+
+    # Recalculate status counts
+    _recalculate_batch_counts(record)
+
+    logger.info(
+        "Fast-forward batch %s: +%d days → %d evaluated, %d kept, %d broken",
+        batch_id, days_offset, total_evaluated, promises_kept, promises_broken,
+    )
+
+    return FastForwardResponse(
+        batch_id=batch_id,
+        days_forwarded=days_offset,
+        simulated_date=simulated_date_str,
+        total_evaluated=total_evaluated,
+        promises_kept=promises_kept,
+        promises_broken=promises_broken,
+        transitions=transitions,
+    )
