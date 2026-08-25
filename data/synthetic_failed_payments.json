@@ -6,7 +6,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_101",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-23T08:09:07.231529Z",
+    "fail_timestamp": "2026-08-23T10:59:26.934871Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -17,7 +17,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_102",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-23T02:57:52.521391Z",
+    "fail_timestamp": "2026-08-23T05:48:12.224733Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -28,7 +28,7 @@
     "amount": 299.0,
     "subscription_id": "sub_starter_monthly_104",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-23T00:00:19.922353Z",
+    "fail_timestamp": "2026-08-23T02:50:39.625695Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -39,7 +39,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_103",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-22T19:21:35.390314Z",
+    "fail_timestamp": "2026-08-22T22:11:55.093656Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -47,10 +47,10 @@
     "payment_id": "pay_syn_0822_1005",
     "customer_id": "cust_in_50005",
     "customer_name": "Rohan Kapoor",
-    "amount": 2499.0,
-    "subscription_id": "sub_scale_monthly_105",
+    "amount": 8999.0,
+    "subscription_id": "sub_vip_organization_annual_105",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-22T19:03:40.393220Z",
+    "fail_timestamp": "2026-08-22T21:54:00.096562Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -61,7 +61,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_107",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-22T11:38:18.769258Z",
+    "fail_timestamp": "2026-08-22T14:28:38.472600Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -72,7 +72,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_106",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-22T09:55:43.848721Z",
+    "fail_timestamp": "2026-08-22T12:46:03.552063Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -83,7 +83,7 @@
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_108",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-22T04:02:28.697240Z",
+    "fail_timestamp": "2026-08-22T06:52:48.400582Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -94,7 +94,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_109",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-21T19:17:05.009857Z",
+    "fail_timestamp": "2026-08-21T22:07:24.713199Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -105,7 +105,7 @@
     "amount": 2499.0,
     "subscription_id": "sub_scale_monthly_110",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-21T16:43:01.928934Z",
+    "fail_timestamp": "2026-08-21T19:33:21.632276Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -116,7 +116,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_111",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-21T16:22:37.709079Z",
+    "fail_timestamp": "2026-08-21T19:12:57.412421Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -127,7 +127,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_112",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-21T05:54:12.878120Z",
+    "fail_timestamp": "2026-08-21T08:44:32.581462Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -135,10 +135,10 @@
     "payment_id": "pay_syn_0821_1013",
     "customer_id": "cust_in_50013",
     "customer_name": "Gaurav Chopra",
-    "amount": 799.0,
-    "subscription_id": "sub_standard_monthly_113",
+    "amount": 6800.0,
+    "subscription_id": "sub_corporate_scale_annual_113",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-21T04:59:21.934949Z",
+    "fail_timestamp": "2026-08-21T07:49:41.638291Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -149,7 +149,7 @@
     "amount": 799.0,
     "subscription_id": "sub_standard_monthly_115",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-20T20:59:13.720630Z",
+    "fail_timestamp": "2026-08-20T23:49:33.423972Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -160,7 +160,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_114",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-20T19:00:09.276402Z",
+    "fail_timestamp": "2026-08-20T21:50:28.979744Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -171,7 +171,7 @@
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_116",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-20T17:06:15.257399Z",
+    "fail_timestamp": "2026-08-20T19:56:34.960741Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -182,7 +182,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_117",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-20T15:49:08.431869Z",
+    "fail_timestamp": "2026-08-20T18:39:28.135211Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -193,7 +193,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_119",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-20T05:34:21.314434Z",
+    "fail_timestamp": "2026-08-20T08:24:41.017776Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -204,18 +204,18 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_118",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-20T00:17:53.868935Z",
+    "fail_timestamp": "2026-08-20T03:08:13.572277Z",
     "retry_count": 0,
     "status": "pending"
   },
   {
-    "payment_id": "pay_syn_0819_1020",
+    "payment_id": "pay_syn_0820_1020",
     "customer_id": "cust_in_50020",
     "customer_name": "Shreya Singhania",
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_120",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-19T22:17:10.331702Z",
+    "fail_timestamp": "2026-08-20T01:07:30.035044Z",
     "retry_count": 1,
     "status": "in_progress"
   },
@@ -226,7 +226,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_121",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-19T19:37:09.276552Z",
+    "fail_timestamp": "2026-08-19T22:27:28.979894Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -237,7 +237,7 @@
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_122",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-19T15:28:17.408054Z",
+    "fail_timestamp": "2026-08-19T18:18:37.111396Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -248,7 +248,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_123",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-19T12:49:31.104888Z",
+    "fail_timestamp": "2026-08-19T15:39:50.808230Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -259,29 +259,29 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_124",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-19T05:48:44.581259Z",
+    "fail_timestamp": "2026-08-19T08:39:04.284601Z",
     "retry_count": 1,
     "status": "pending"
   },
   {
-    "payment_id": "pay_syn_0818_1026",
+    "payment_id": "pay_syn_0819_1026",
     "customer_id": "cust_in_50026",
     "customer_name": "Riya Agarwal",
-    "amount": 999.0,
-    "subscription_id": "sub_pro_monthly_126",
+    "amount": 6800.0,
+    "subscription_id": "sub_corporate_scale_annual_126",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-18T23:03:43.924654Z",
+    "fail_timestamp": "2026-08-19T01:54:03.627996Z",
     "retry_count": 1,
     "status": "in_progress"
   },
   {
-    "payment_id": "pay_syn_0818_1025",
+    "payment_id": "pay_syn_0819_1025",
     "customer_id": "cust_in_50025",
     "customer_name": "Abhishek Agarwal",
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_125",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-18T21:45:34.455794Z",
+    "fail_timestamp": "2026-08-19T00:35:54.159136Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -292,7 +292,7 @@
     "amount": 299.0,
     "subscription_id": "sub_starter_monthly_128",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-18T10:24:09.559675Z",
+    "fail_timestamp": "2026-08-18T13:14:29.263017Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -303,7 +303,7 @@
     "amount": 2999.0,
     "subscription_id": "sub_premium_quarterly_127",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-18T09:20:53.051532Z",
+    "fail_timestamp": "2026-08-18T12:11:12.754874Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -314,7 +314,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_129",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-18T04:19:07.254493Z",
+    "fail_timestamp": "2026-08-18T07:09:26.957835Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -325,7 +325,7 @@
     "amount": 2999.0,
     "subscription_id": "sub_premium_quarterly_130",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-18T03:16:35.160513Z",
+    "fail_timestamp": "2026-08-18T06:06:54.863855Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -336,7 +336,7 @@
     "amount": 299.0,
     "subscription_id": "sub_starter_monthly_131",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-17T17:58:06.139641Z",
+    "fail_timestamp": "2026-08-17T20:48:25.842983Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -347,7 +347,7 @@
     "amount": 799.0,
     "subscription_id": "sub_standard_monthly_132",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-17T16:26:13.711758Z",
+    "fail_timestamp": "2026-08-17T19:16:33.415100Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -358,7 +358,7 @@
     "amount": 299.0,
     "subscription_id": "sub_starter_monthly_133",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-17T14:51:30.475417Z",
+    "fail_timestamp": "2026-08-17T17:41:50.178759Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -369,7 +369,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_134",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-17T07:16:40.875667Z",
+    "fail_timestamp": "2026-08-17T10:07:00.579009Z",
     "retry_count": 2,
     "status": "escalated"
   },
@@ -380,7 +380,7 @@
     "amount": 799.0,
     "subscription_id": "sub_standard_monthly_135",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-17T05:35:43.211196Z",
+    "fail_timestamp": "2026-08-17T08:26:02.914538Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -391,7 +391,7 @@
     "amount": 1999.0,
     "subscription_id": "sub_business_monthly_136",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-17T02:42:29.259272Z",
+    "fail_timestamp": "2026-08-17T05:32:48.962614Z",
     "retry_count": 2,
     "status": "in_progress"
   },
@@ -402,7 +402,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_138",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-16T13:35:19.695245Z",
+    "fail_timestamp": "2026-08-16T16:25:39.398587Z",
     "retry_count": 2,
     "status": "pending"
   },
@@ -413,7 +413,7 @@
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_139",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-16T12:58:13.115945Z",
+    "fail_timestamp": "2026-08-16T15:48:32.819287Z",
     "retry_count": 2,
     "status": "escalated"
   },
@@ -424,7 +424,7 @@
     "amount": 299.0,
     "subscription_id": "sub_starter_monthly_137",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-16T11:23:05.150441Z",
+    "fail_timestamp": "2026-08-16T14:13:24.853783Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -435,7 +435,7 @@
     "amount": 1999.0,
     "subscription_id": "sub_business_monthly_140",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-16T06:36:35.565909Z",
+    "fail_timestamp": "2026-08-16T09:26:55.269251Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -443,10 +443,10 @@
     "payment_id": "pay_syn_0816_1041",
     "customer_id": "cust_in_50041",
     "customer_name": "Priya Reddy",
-    "amount": 2999.0,
-    "subscription_id": "sub_premium_quarterly_141",
+    "amount": 8999.0,
+    "subscription_id": "sub_vip_organization_annual_141",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-16T01:11:59.944183Z",
+    "fail_timestamp": "2026-08-16T04:02:19.647525Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -457,7 +457,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_142",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-15T18:03:44.992805Z",
+    "fail_timestamp": "2026-08-15T20:54:04.696147Z",
     "retry_count": 2,
     "status": "in_progress"
   },
@@ -468,7 +468,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_143",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-15T09:28:58.324587Z",
+    "fail_timestamp": "2026-08-15T12:19:18.027929Z",
     "retry_count": 1,
     "status": "in_progress"
   },
@@ -479,7 +479,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_145",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-15T07:28:53.636967Z",
+    "fail_timestamp": "2026-08-15T10:19:13.340309Z",
     "retry_count": 2,
     "status": "pending"
   },
@@ -490,7 +490,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_144",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-15T07:06:41.874298Z",
+    "fail_timestamp": "2026-08-15T09:57:01.577640Z",
     "retry_count": 2,
     "status": "escalated"
   },
@@ -501,7 +501,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_146",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-14T19:55:03.210119Z",
+    "fail_timestamp": "2026-08-14T22:45:22.913461Z",
     "retry_count": 2,
     "status": "escalated"
   },
@@ -512,7 +512,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_147",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-14T18:51:22.150534Z",
+    "fail_timestamp": "2026-08-14T21:41:41.853876Z",
     "retry_count": 2,
     "status": "in_progress"
   },
@@ -523,7 +523,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_149",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-14T16:37:30.250952Z",
+    "fail_timestamp": "2026-08-14T19:27:49.954294Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -534,7 +534,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_148",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-14T15:46:18.223049Z",
+    "fail_timestamp": "2026-08-14T18:36:37.926391Z",
     "retry_count": 0,
     "status": "pending"
   },
@@ -545,7 +545,7 @@
     "amount": 799.0,
     "subscription_id": "sub_standard_monthly_150",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-14T03:46:45.623821Z",
+    "fail_timestamp": "2026-08-14T06:37:05.327163Z",
     "retry_count": 3,
     "status": "escalated"
   },
@@ -556,7 +556,7 @@
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_152",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-13T21:05:01.714883Z",
+    "fail_timestamp": "2026-08-13T23:55:21.418225Z",
     "retry_count": 3,
     "status": "pending"
   },
@@ -567,7 +567,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_151",
     "fail_reason": "mandate_revoked",
-    "fail_timestamp": "2026-08-13T20:51:12.598495Z",
+    "fail_timestamp": "2026-08-13T23:41:32.301837Z",
     "retry_count": 1,
     "status": "escalated"
   },
@@ -578,7 +578,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_154",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-13T14:30:35.882047Z",
+    "fail_timestamp": "2026-08-13T17:20:55.585389Z",
     "retry_count": 3,
     "status": "escalated"
   },
@@ -589,7 +589,7 @@
     "amount": 1999.0,
     "subscription_id": "sub_business_monthly_153",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-13T12:26:46.798748Z",
+    "fail_timestamp": "2026-08-13T15:17:06.502090Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -600,7 +600,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_155",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-13T03:53:55.832985Z",
+    "fail_timestamp": "2026-08-13T06:44:15.536327Z",
     "retry_count": 1,
     "status": "in_progress"
   },
@@ -611,7 +611,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_157",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-13T03:24:13.452245Z",
+    "fail_timestamp": "2026-08-13T06:14:33.155587Z",
     "retry_count": 0,
     "status": "in_progress"
   },
@@ -622,18 +622,18 @@
     "amount": 1999.0,
     "subscription_id": "sub_business_monthly_156",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-13T00:24:19.702428Z",
+    "fail_timestamp": "2026-08-13T03:14:39.405770Z",
     "retry_count": 3,
     "status": "escalated"
   },
   {
-    "payment_id": "pay_syn_0812_1058",
+    "payment_id": "pay_syn_0813_1058",
     "customer_id": "cust_in_50058",
     "customer_name": "Saanvi Bose",
     "amount": 2999.0,
     "subscription_id": "sub_premium_quarterly_158",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-12T22:09:53.662464Z",
+    "fail_timestamp": "2026-08-13T01:00:13.365806Z",
     "retry_count": 3,
     "status": "in_progress"
   },
@@ -641,10 +641,10 @@
     "payment_id": "pay_syn_0812_1059",
     "customer_id": "cust_in_50059",
     "customer_name": "Pari Mishra",
-    "amount": 999.0,
-    "subscription_id": "sub_pro_monthly_159",
+    "amount": 6800.0,
+    "subscription_id": "sub_corporate_scale_annual_159",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-12T20:04:12.495483Z",
+    "fail_timestamp": "2026-08-12T22:54:32.198825Z",
     "retry_count": 1,
     "status": "in_progress"
   },
@@ -655,7 +655,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_160",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-12T04:16:17.189767Z",
+    "fail_timestamp": "2026-08-12T07:06:36.893109Z",
     "retry_count": 2,
     "status": "in_progress"
   },
@@ -666,18 +666,18 @@
     "amount": 2499.0,
     "subscription_id": "sub_scale_monthly_161",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-12T03:14:23.616349Z",
+    "fail_timestamp": "2026-08-12T06:04:43.319691Z",
     "retry_count": 2,
     "status": "pending"
   },
   {
-    "payment_id": "pay_syn_0811_1062",
+    "payment_id": "pay_syn_0812_1062",
     "customer_id": "cust_in_50062",
     "customer_name": "Arnav Bansal",
     "amount": 799.0,
     "subscription_id": "sub_standard_monthly_162",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-11T23:56:49.322564Z",
+    "fail_timestamp": "2026-08-12T02:47:09.025906Z",
     "retry_count": 2,
     "status": "pending"
   },
@@ -688,7 +688,7 @@
     "amount": 1999.0,
     "subscription_id": "sub_business_monthly_163",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-11T17:41:29.652442Z",
+    "fail_timestamp": "2026-08-11T20:31:49.355784Z",
     "retry_count": 2,
     "status": "in_progress"
   },
@@ -699,7 +699,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_164",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-11T17:19:54.356342Z",
+    "fail_timestamp": "2026-08-11T20:10:14.059684Z",
     "retry_count": 1,
     "status": "in_progress"
   },
@@ -710,7 +710,7 @@
     "amount": 299.0,
     "subscription_id": "sub_starter_monthly_165",
     "fail_reason": "technical_error",
-    "fail_timestamp": "2026-08-11T11:14:06.240004Z",
+    "fail_timestamp": "2026-08-11T14:04:25.943346Z",
     "retry_count": 1,
     "status": "in_progress"
   },
@@ -721,7 +721,7 @@
     "amount": 1999.0,
     "subscription_id": "sub_business_monthly_166",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-11T05:30:58.485352Z",
+    "fail_timestamp": "2026-08-11T08:21:18.188694Z",
     "retry_count": 0,
     "status": "escalated"
   },
@@ -732,7 +732,7 @@
     "amount": 3999.0,
     "subscription_id": "sub_enterprise_team_168",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-11T02:30:23.966143Z",
+    "fail_timestamp": "2026-08-11T05:20:43.669485Z",
     "retry_count": 3,
     "status": "escalated"
   },
@@ -743,7 +743,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_167",
     "fail_reason": "bank_decline",
-    "fail_timestamp": "2026-08-11T00:30:41.025605Z",
+    "fail_timestamp": "2026-08-11T03:21:00.728947Z",
     "retry_count": 2,
     "status": "in_progress"
   },
@@ -754,7 +754,7 @@
     "amount": 4999.0,
     "subscription_id": "sub_executive_annual_169",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-10T16:43:29.452052Z",
+    "fail_timestamp": "2026-08-10T19:33:49.155394Z",
     "retry_count": 3,
     "status": "escalated"
   },
@@ -765,7 +765,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_170",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-10T15:37:52.126493Z",
+    "fail_timestamp": "2026-08-10T18:28:11.829835Z",
     "retry_count": 3,
     "status": "escalated"
   },
@@ -776,7 +776,7 @@
     "amount": 2999.0,
     "subscription_id": "sub_premium_quarterly_171",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-10T09:17:33.643135Z",
+    "fail_timestamp": "2026-08-10T12:07:53.346477Z",
     "retry_count": 1,
     "status": "escalated"
   },
@@ -787,7 +787,7 @@
     "amount": 499.0,
     "subscription_id": "sub_basic_monthly_172",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-10T06:42:31.226366Z",
+    "fail_timestamp": "2026-08-10T09:32:50.929708Z",
     "retry_count": 2,
     "status": "pending"
   },
@@ -798,7 +798,7 @@
     "amount": 1499.0,
     "subscription_id": "sub_growth_monthly_173",
     "fail_reason": "expired_card",
-    "fail_timestamp": "2026-08-10T02:56:18.322291Z",
+    "fail_timestamp": "2026-08-10T05:46:38.025633Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -809,7 +809,7 @@
     "amount": 2499.0,
     "subscription_id": "sub_scale_monthly_175",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-09T14:44:29.705361Z",
+    "fail_timestamp": "2026-08-09T17:34:49.408703Z",
     "retry_count": 1,
     "status": "pending"
   },
@@ -820,7 +820,7 @@
     "amount": 999.0,
     "subscription_id": "sub_pro_monthly_174",
     "fail_reason": "insufficient_funds",
-    "fail_timestamp": "2026-08-09T14:40:26.799062Z",
+    "fail_timestamp": "2026-08-09T17:30:46.502404Z",
     "retry_count": 0,
     "status": "in_progress"
   }

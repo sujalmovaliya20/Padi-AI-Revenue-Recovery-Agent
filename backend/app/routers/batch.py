@@ -33,10 +33,10 @@ for p in [BACKEND_DIR, REPO_ROOT]:
         sys.path.insert(0, p)
 
 try:
-    from agent.graph import build_recovery_graph, AgentState
+    from agent.graph import build_recovery_graph, resume_recovery_payment, generate_summary, AgentState
     from models.schemas import FailedPayment, PaymentStatus
 except ImportError:
-    from backend.agent.graph import build_recovery_graph, AgentState
+    from backend.agent.graph import build_recovery_graph, resume_recovery_payment, generate_summary, AgentState
     from backend.models.schemas import FailedPayment, PaymentStatus
 
 logger = logging.getLogger(__name__)
@@ -61,6 +61,7 @@ class BatchRecord:
         self.payments_by_id: Dict[str, Dict[str, Any]] = {}
         self.counts_by_status: Dict[str, int] = {
             "pending": len(payments),
+            "pending_approval": 0,
             "in_progress": 0,
             "recovered": 0,
             "escalated": 0,
@@ -74,6 +75,31 @@ BATCH_STORE: Dict[str, BatchRecord] = {}
 
 
 # ── Request / Response DTO Schemas ─────────────────────────────────
+
+class ApprovalDecisionRequest(BaseModel):
+    decision: str = Field(..., description="'approve' or 'reject'", example="approve")
+    reviewer: str = Field(default="Risk_Operations_Lead", description="Name or role of the reviewer")
+
+
+class PendingApprovalItem(BaseModel):
+    payment_id: str
+    customer_id: Optional[str] = None
+    customer_name: Optional[str] = None
+    amount: float
+    subscription_id: Optional[str] = None
+    fail_category: Optional[str] = None
+    fail_reason: Optional[str] = None
+    proposed_action: str
+    approval_reason: str
+    status: str
+    timestamp: str
+
+
+class PendingApprovalsResponse(BaseModel):
+    batch_id: str
+    total_pending: int
+    pending_approvals: List[PendingApprovalItem]
+
 
 class BatchRunRequest(BaseModel):
     """Payload to start a batch recovery run."""
@@ -124,6 +150,12 @@ class AuditTrailResponse(BaseModel):
     recovered_amount: float = 0.0
     promise_to_pay_date: Optional[str] = None
     retry_count: int = 0
+    requires_human_approval: bool = False
+    approval_reason: Optional[str] = None
+    human_approval_decision: Optional[str] = None
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    summary_explanation: Optional[str] = None
     audit_trail: List[Dict[str, Any]]
     retry_history: List[Dict[str, Any]]
 
@@ -138,6 +170,7 @@ class CategoryMetric(BaseModel):
     escalated_count: int
     in_progress_count: int
     stopped_count: int
+    pending_approval_count: int = 0
 
 
 class BatchMetricsResponse(BaseModel):
@@ -158,6 +191,8 @@ def load_synthetic_dataset() -> List[Dict[str, Any]]:
     candidates = [
         Path(REPO_ROOT) / "data" / "synthetic_failed_payments.json",
         Path(BACKEND_DIR) / "data" / "synthetic_failed_payments.json",
+        Path("/app/data/synthetic_failed_payments.json"),
+        Path("data/synthetic_failed_payments.json"),
         Path(__file__).resolve().parent.parent.parent.parent / "data" / "synthetic_failed_payments.json",
     ]
     for p in candidates:
@@ -170,7 +205,14 @@ def load_synthetic_dataset() -> List[Dict[str, Any]]:
 
     # If dataset file missing on disk, dynamically generate a batch of 75
     try:
-        from data.generate_synthetic_batch import generate_synthetic_payments
+        try:
+            from data.generate_synthetic_batch import generate_synthetic_payments
+        except ImportError:
+            import sys
+            for extra in ["/app", "/app/data", str(Path(REPO_ROOT) / "data")]:
+                if extra not in sys.path:
+                    sys.path.insert(0, extra)
+            from generate_synthetic_batch import generate_synthetic_payments
         return generate_synthetic_payments(count=75)
     except Exception:
         return []
@@ -258,6 +300,9 @@ def execute_batch_in_background(batch_id: str):
             final_state["status"] = PaymentStatus.STOPPED.value
             final_state["stop_reason"] = f"Execution Error: {e}"
             final_state["error"] = str(e)
+
+        # Post-processing: compose deterministic plain-English summary
+        final_state["summary_explanation"] = generate_summary(final_state)
 
         # Update batch record incrementally
         final_dict = dict(final_state)
@@ -396,6 +441,7 @@ async def get_payment_audit_trail(batch_id: str, payment_id: str):
         recovered_amount=float(payment_state.get("recovered_amount", 0.0)),
         promise_to_pay_date=payment_state.get("promise_to_pay_date"),
         retry_count=int(payment_state.get("retry_count", 0)),
+        summary_explanation=payment_state.get("summary_explanation"),
         audit_trail=payment_state.get("intervention_history", []),
         retry_history=payment_state.get("retry_history", []),
     )
@@ -478,6 +524,8 @@ async def get_batch_metrics(batch_id: str):
             m.in_progress_count += 1
         elif st == PaymentStatus.STOPPED.value:
             m.stopped_count += 1
+        elif st == "pending_approval" or r.get("requires_human_approval"):
+            m.pending_approval_count += 1
 
     # Compute percentage per category
     for cat, m in categories.items():
@@ -508,13 +556,22 @@ async def reset_demo_dataset():
     BATCH_STORE.clear()
 
     try:
-        from data.generate_synthetic_batch import generate_synthetic_payments, save_dataset
+        try:
+            from data.generate_synthetic_batch import generate_synthetic_payments, save_dataset
+            from data.create_test_orders import provision_test_orders
+        except ImportError:
+            import sys
+            for extra in ["/app", "/app/data", str(Path(REPO_ROOT) / "data")]:
+                if extra not in sys.path:
+                    sys.path.insert(0, extra)
+            from generate_synthetic_batch import generate_synthetic_payments, save_dataset
+            from create_test_orders import provision_test_orders
+
         fresh_data = generate_synthetic_payments(count=75)
         save_dataset(fresh_data)
         logger.info("Fresh synthetic payment dataset (75 records) generated for demo reset.")
 
         # Provision fresh test orders
-        from data.create_test_orders import provision_test_orders
         provision_test_orders(fresh_data, limit=15)
 
         return {
@@ -559,4 +616,130 @@ async def export_batch_summary(batch_id: str):
         "aggregate_metrics": metrics.model_dump(),
         "payments_audit_trail": record.results,
     }
+
+
+@router.get("/{batch_id}/pending-approvals", response_model=PendingApprovalsResponse)
+async def get_pending_approvals(batch_id: str):
+    """
+    Returns all payments currently paused at the human approval gate for this batch.
+    """
+    record = BATCH_STORE.get(batch_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Batch ID '{batch_id}' not found.",
+        )
+
+    pending_items = []
+    for p in record.results:
+        if p.get("status") == "pending_approval" or p.get("requires_human_approval"):
+            pending_items.append(PendingApprovalItem(
+                payment_id=p["payment_id"],
+                customer_id=p.get("customer_id"),
+                customer_name=p.get("customer_name"),
+                amount=float(p.get("amount", 0.0)),
+                subscription_id=p.get("subscription_id"),
+                fail_category=p.get("fail_category"),
+                fail_reason=p.get("fail_reason"),
+                proposed_action=p.get("current_action", "retry_now"),
+                approval_reason=p.get("approval_reason", f"Amount ₹{p.get('amount', 0):.2f} exceeds auto-approval ceiling of ₹5,000.00; requires manual authorization."),
+                status=p.get("status", "pending_approval"),
+                timestamp=p.get("fail_timestamp", datetime.now(timezone.utc).isoformat()),
+            ))
+
+    return PendingApprovalsResponse(
+        batch_id=batch_id,
+        total_pending=len(pending_items),
+        pending_approvals=pending_items,
+    )
+
+
+@router.post("/{batch_id}/approve/{payment_id}")
+async def approve_or_reject_payment(
+    batch_id: str,
+    payment_id: str,
+    body: ApprovalDecisionRequest,
+):
+    """
+    Human-in-the-loop approval decision:
+    Resumes LangGraph execution from checkpoint for the paused payment.
+    - On 'approve': clears gate and executes proposed intervention action.
+    - On 'reject': overrides to escalate_human without tool execution.
+    """
+    record = BATCH_STORE.get(batch_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Batch ID '{batch_id}' not found.",
+        )
+
+    decision = body.decision.lower().strip()
+    if decision not in ["approve", "reject"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid decision '{body.decision}'. Must be 'approve' or 'reject'.",
+        )
+
+    # Find payment in batch results
+    payment_idx = next(
+        (i for i, p in enumerate(record.results) if p.get("payment_id") == payment_id),
+        None,
+    )
+    if payment_idx is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Payment ID '{payment_id}' not found in batch '{batch_id}'.",
+        )
+
+    current_state_dict = record.results[payment_idx]
+    try:
+        final_state = resume_recovery_payment(
+            payment_id=payment_id,
+            decision=decision,
+            reviewer=body.reviewer,
+            current_state_dict=current_state_dict,
+        )
+    except Exception as e:
+        logger.error("Error resuming payment %s: %s", payment_id, e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to resume payment from checkpoint: {e}",
+        )
+
+    # Update in-memory record
+    record.results[payment_idx] = final_state
+    record.payments_by_id[payment_id] = final_state
+
+    # Recalculate status counts
+    counts = {
+        "pending": 0,
+        "pending_approval": 0,
+        "in_progress": 0,
+        "recovered": 0,
+        "escalated": 0,
+        "stopped": 0,
+    }
+    for res in record.results:
+        st = res.get("status", "pending")
+        if st in counts:
+            counts[st] += 1
+        elif res.get("requires_human_approval"):
+            counts["pending_approval"] += 1
+        else:
+            counts["in_progress"] += 1
+    record.counts_by_status = counts
+
+    return {
+        "status": "resumed",
+        "batch_id": batch_id,
+        "payment_id": payment_id,
+        "decision": decision,
+        "reviewer": body.reviewer,
+        "final_status": final_state.get("status"),
+        "final_action": final_state.get("current_action"),
+        "recovered_amount": final_state.get("recovered_amount", 0.0),
+        "message": f"Payment {payment_id} successfully {decision}d by {body.reviewer}. New status: {final_state.get('status')}.",
+        "updated_payment": final_state,
+    }
+
 

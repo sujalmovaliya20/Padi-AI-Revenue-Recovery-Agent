@@ -79,6 +79,17 @@ SUBSCRIPTION_PLANS = [
     ("sub_premium_quarterly", 2999.00),
     ("sub_enterprise_team", 3999.00),
     ("sub_executive_annual", 4999.00),
+    ("sub_enterprise_plus_annual", 5999.00),
+    ("sub_corporate_scale_annual", 6800.00),
+    ("sub_enterprise_custom_annual", 7500.00),
+    ("sub_vip_organization_annual", 8999.00),
+]
+
+HIGH_VALUE_PLANS = [
+    ("sub_enterprise_plus_annual", 5999.00),
+    ("sub_corporate_scale_annual", 6800.00),
+    ("sub_enterprise_custom_annual", 7500.00),
+    ("sub_vip_organization_annual", 8999.00),
 ]
 
 # Exact distribution percentages specified by user:
@@ -105,17 +116,11 @@ def generate_customer_name(used_names: set[str]) -> str:
 def generate_synthetic_payments(count: int = 75, seed: int = 42) -> List[Dict[str, Any]]:
     """
     Generate a list of synthetic failed payment dictionaries matching the requested distribution.
+    Includes 4-6 high-value transactions (> ₹5,000) to trigger human approval gates.
     """
     random.seed(seed)
     used_names: set[str] = set()
 
-    # Calculate exact counts per category
-    # For count = 75:
-    # insufficient_funds: round(75 * 0.40) = 30
-    # expired_card:       round(75 * 0.20) = 15
-    # bank_decline:       round(75 * 0.15) = 11
-    # mandate_revoked:    round(75 * 0.15) = 11
-    # technical_error:    75 - (30+15+11+11) = 8
     target_counts = {}
     allocated = 0
     for reason, weight in CATEGORY_DISTRIBUTION[:-1]:
@@ -133,8 +138,14 @@ def generate_synthetic_payments(count: int = 75, seed: int = 42) -> List[Dict[st
     now = datetime.now(timezone.utc)
     records: List[Dict[str, Any]] = []
 
+    # High value indices to ensure 5 payments > ₹5,000
+    high_value_indices = {4, 12, 25, 40, 58}
+
     for i, reason in enumerate(category_pool, start=1):
-        plan_id, base_price = random.choice(SUBSCRIPTION_PLANS)
+        if (i - 1) in high_value_indices:
+            plan_id, base_price = random.choice(HIGH_VALUE_PLANS)
+        else:
+            plan_id, base_price = random.choice(SUBSCRIPTION_PLANS[:10])
         
         # Stagger timestamp over the past 14 days (1 to 336 hours ago)
         # Uniformly distributed with slight random jitter

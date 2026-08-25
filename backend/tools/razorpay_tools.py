@@ -6,7 +6,10 @@ Tools:
 2. send_payment_link(customer_id, amount, reason, ...) — Create a Razorpay Payment Link and simulate dispatch.
 3. check_mandate_status(subscription_id) — Query Razorpay Subscriptions API for mandate status.
 
-Gracefully handles live test-mode keys and offline mock fallback so the agent executes reliably.
+Includes controlled failure injection mode for Resilience Testing:
+- API_TIMEOUT (Simulate hanging gateway / 30s timeout)
+- RATE_LIMIT (Simulate HTTP 429 rate limit exceeded)
+- INVALID_ORDER (Simulate HTTP 400 bad request / invalid order ID)
 """
 
 from __future__ import annotations
@@ -37,6 +40,65 @@ except ImportError:
     from backend.app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+# ── Custom Exceptions for Resilience Testing ────────────────────────
+
+class RazorpayAPIError(Exception):
+    """Base exception for Razorpay tool execution errors."""
+    pass
+
+
+class RazorpayTimeoutError(RazorpayAPIError):
+    """Simulated or real gateway connection timeout error."""
+    pass
+
+
+class RazorpayRateLimitError(RazorpayAPIError):
+    """Simulated or real HTTP 429 Too Many Requests error."""
+    pass
+
+
+class RazorpayInvalidOrderError(RazorpayAPIError):
+    """Simulated or real HTTP 400 Bad Request / Invalid Order error."""
+    pass
+
+
+# Global Controlled Failure Injection State
+_FAILURE_INJECTION_MODE: Optional[str] = None
+_INJECTION_COUNT: int = 0
+
+
+def inject_failure(failure_type: Optional[str] = None) -> None:
+    """
+    Configure or clear the failure injection mode for resilience testing.
+    Supported types: 'API_TIMEOUT', 'RATE_LIMIT', 'INVALID_ORDER', or None to reset.
+    """
+    global _FAILURE_INJECTION_MODE, _INJECTION_COUNT
+    _FAILURE_INJECTION_MODE = failure_type
+    _INJECTION_COUNT = 0
+    logger.info("Controlled failure injection mode set to: %s", failure_type)
+
+
+def get_injected_failure() -> Optional[str]:
+    """Return active failure injection type if any."""
+    return _FAILURE_INJECTION_MODE or os.getenv("INJECT_FAILURE", None)
+
+
+def check_and_raise_injected_failure():
+    """Evaluate if an injected failure should be raised for the current call."""
+    global _INJECTION_COUNT
+    failure = get_injected_failure()
+    if not failure:
+        return
+
+    _INJECTION_COUNT += 1
+    if failure == "API_TIMEOUT":
+        raise RazorpayTimeoutError("Gateway connection timed out after 30000ms: api.razorpay.com unreachable")
+    elif failure == "RATE_LIMIT":
+        raise RazorpayRateLimitError("HTTP 429: Too Many Requests: Rate limit quota exceeded for merchant key")
+    elif failure == "INVALID_ORDER":
+        raise RazorpayInvalidOrderError("HTTP 400: BAD_REQUEST_ERROR: Order ID 'order_invalid_999' does not exist or has expired")
 
 
 def get_razorpay_client() -> Optional[Any]:
@@ -91,6 +153,9 @@ def retry_charge(
     Creates a real Razorpay Order (amount in paise = amount * 100) linked to the
     receipt/payment_id so a retry transaction can be authorized or tracked.
     """
+    # Check failure injection hook first
+    check_and_raise_injected_failure()
+
     client = get_razorpay_client()
     amount_in_paise = int(round(amount * 100))
     receipt_id = f"rcpt_{payment_id[-20:]}" if len(payment_id) > 20 else payment_id
@@ -172,6 +237,9 @@ def send_payment_link(
     Generates an authentic payment link via Razorpay Payment Links API in test mode.
     Disables real SMS/Email sending in test mode while logging the real payment URL.
     """
+    # Check failure injection hook first
+    check_and_raise_injected_failure()
+
     client = get_razorpay_client()
     amount_in_paise = int(round(amount * 100))
     desc = f"Update subscription payment: {reason[:80]}" if reason else "Subscription Mandate Payment Update"
@@ -248,6 +316,9 @@ def check_mandate_status(subscription_id: str) -> Dict[str, Any]:
     """
     Query Razorpay Subscriptions API for mandate status.
     """
+    # Check failure injection hook first
+    check_and_raise_injected_failure()
+
     client = get_razorpay_client()
 
     if client is not None and is_live_test_mode_configured():

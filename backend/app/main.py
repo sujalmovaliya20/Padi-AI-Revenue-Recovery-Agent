@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import init_db
-from app.routers import health, batch
+from app.routers import health, batch, demo
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -48,6 +48,7 @@ app.add_middleware(
 # --- Routers ---
 app.include_router(health.router)
 app.include_router(batch.router)
+app.include_router(demo.router)
 
 
 @app.get("/")
@@ -63,6 +64,7 @@ def root():
             "batch_results": "GET /batch/{batch_id}/results",
             "batch_audit": "GET /batch/{batch_id}/audit/{payment_id}",
             "batch_metrics": "GET /batch/{batch_id}/metrics",
+            "resilience_test": "POST /demo/trigger-resilience-test",
             "docs": "/docs",
         },
     }
