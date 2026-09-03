@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.cdnfonts.com/css/tasa-orbiter');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root, [data-theme="light"] {
+  /* Page & Surfaces */
+  --bg-page: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f8f9fc;
+  --bg-surface-elevated: #ffffff;
+  --bg-card: #ffffff;
+
+  /* Typography & Text */
+  --text-primary: #0b0f19;
+  --text-secondary: #374151; /* 8.2:1 contrast against white */
+  --text-muted: #4b5563; /* 6.9:1 contrast against white */
+
+  /* Brand Tokens */
+  --brand-primary: #0000c4;
+  --brand-accent: #305eff;
+  --brand-accent-subtle: rgba(48, 94, 255, 0.08);
+  --brand-accent-hover: #1e47d9;
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-default: rgba(0, 0, 0, 0.14);
+  --border-focus: #305eff;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-elevated: 0 10px 25px -5px rgba(25, 40, 57, 0.09), 0 8px 10px -6px rgba(25, 40, 57, 0.05);
+
+  /* Status Tokens (WCAG AA/AAA calibrated) */
+  --status-recovered-text: #065f46; /* emerald-800, 7.1:1 */
+  --status-recovered-bg: #ecfdf5;
+  --status-recovered-border: #a7f3d0;
+
+  --status-escalated-text: #991b1b; /* red-800, 7.8:1 */
+  --status-escalated-bg: #fef2f2;
+  --status-escalated-border: #fecaca;
+
+  --status-stopped-text: #1f2937; /* gray-800 */
+  --status-stopped-bg: #f3f4f6;
+  --status-stopped-border: #d1d5db;
+
+  --status-warning-text: #92400e; /* amber-800 */
+  --status-warning-bg: #fffbeb;
+  --status-warning-border: #fde68a;
+
+  /* Chart Colors */
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: rgba(0, 0, 0, 0.14);
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
+
+[data-theme="dark"], .dark {
+  /* Page & Surfaces (Near-black midnight tone to avoid halation) */
+  --bg-page: #0a0a12;
+  --bg-surface: #13131f; /* Step lighter for visible elevation */
+  --bg-surface-subtle: #191928;
+  --bg-surface-elevated: #1f1f32;
+  --bg-card: #13131f;
+
+  /* Typography & Text (Off-white, soft on dark) */
+  --text-primary: #f4f4f8;
+  --text-secondary: #cbd5e1; /* slate-300, 10.5:1 contrast */
+  --text-muted: #94a3b8; /* slate-400, 6.2:1 contrast */
+
+  /* Brand Tokens (Brightened for high dark-mode contrast) */
+  --brand-primary: #5c8aff;
+  --brand-accent: #6f9bff;
+  --brand-accent-subtle: rgba(92, 138, 255, 0.15);
+  --brand-accent-hover: #82a8ff;
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.15);
+  --border-focus: #5c8aff;
+
+  /* Shadows (Darker, higher opacity for dark mode elevation) */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-elevated: 0 12px 30px rgba(0, 0, 0, 0.85);
+
+  /* Status Tokens (Dark Mode - high luminosity for legibility) */
+  --status-recovered-text: #34d399; /* emerald-400, 8.5:1 */
+  --status-recovered-bg: rgba(52, 211, 153, 0.12);
+  --status-recovered-border: rgba(52, 211, 153, 0.3);
+
+  --status-escalated-text: #f87171; /* red-400, 7.2:1 */
+  --status-escalated-bg: rgba(248, 113, 113, 0.12);
+  --status-escalated-border: rgba(248, 113, 113, 0.3);
+
+  --status-stopped-text: #cbd5e1; /* slate-300 */
+  --status-stopped-bg: rgba(148, 163, 184, 0.12);
+  --status-stopped-border: rgba(148, 163, 184, 0.3);
+
+  --status-warning-text: #fbbf24; /* amber-400 */
+  --status-warning-bg: rgba(251, 191, 36, 0.12);
+  --status-warning-border: rgba(251, 191, 36, 0.3);
+
+  /* Chart Colors */
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-tooltip-bg: #191928;
+  --chart-tooltip-border: rgba(255, 255, 255, 0.18);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', 'Inter Placeholder', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'TASA Orbiter Display SemiBold', 'TASA Orbiter Display SemiBold Placeholder', sans-serif;
+    font-weight: 400;
+    color: var(--text-primary);
+    letter-spacing: normal;
+  }
+
+  h1 {
+    font-size: 32px;
+    line-height: 1.19;
+  }
+
+  h2 {
+    font-size: 24px;
+    line-height: 1.33;
+  }
+
+  h3 {
+    font-size: 20px;
+    line-height: 1.33;
+  }
+
+  h4 {
+    font-size: 18px;
+    line-height: 1.33;
+  }
+
+  code, pre, kbd, samp {
+    font-family: 'Menlo', monospace;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+}
+
+/* Common Card Containers */
+.theme-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+
+.theme-card:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+.theme-card-elevated {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+  transition: all 0.2s ease;
+}
