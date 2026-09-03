@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     # --- App ---
     APP_NAME: str = "Revenue Recovery Agent"
     DEBUG: bool = True
+    PORT: int = 8000
+    ALLOWED_ORIGINS: str = ""  # Comma-separated list, e.g. "https://my-app.vercel.app,https://custom-domain.com"
 
     # --- Database ---
     DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/revenue_recovery"
