@@ -233,49 +233,6 @@ Representative metrics from a 75-payment synthetic batch run on Razorpay test-mo
 
 > **Note:** These numbers come from the synthetic dataset generator — each batch run produces slightly different results due to stochastic promise-to-pay triggers (~20% probability) and simulated payment outcomes. Run `POST /batch/run` and `GET /batch/{batch_id}/metrics` to get your own measured results.
 
-## Deployment
-
-> **Frontend:** `<vercel-url>` · **Backend:** `<render-url>`
->
-> *(Replace with actual URLs after deploying.)*
-
-> [!WARNING]
-> **Render Cold Starts:** The backend is deployed on Render's free tier, which spins down after 15 minutes of inactivity. The **first request after idle may take 30-50 seconds** to respond. This is normal behavior for the free tier and not a bug in the agent.
-
-### Backend → Render
-
-1. Create a new Web Service on Render, connect this repo
-2. Render will automatically detect the `render.yaml` Blueprint at the root — use it to deploy both the Web Service and the managed PostgreSQL database.
-3. Once deployed, find the internal connection string of the PostgreSQL database and the `render.yaml` will automatically sync most things, but you still need to set the environment variables listed below in the Render dashboard (Environment tab of the Web Service).
-
-### Frontend → Vercel
-
-1. Import this repo into Vercel
-2. Set the **root directory** to `frontend`
-3. Vercel auto-detects Next.js — zero config needed (`npm run build` → `next build`)
-4. Set the environment variable listed below in Vercel's dashboard
-
-### Environment Variable Checklists
-
-**Render Dashboard (Backend Web Service):**
-
-| Variable | Value |
-| -------- | ----- |
-| `DATABASE_URL` | Render Postgres internal connection string (from the DB dashboard) |
-| `RAZORPAY_KEY_ID` | `rzp_test_xxxxxxxxxxxx` |
-| `RAZORPAY_KEY_SECRET` | Your Razorpay test secret |
-| `NVIDIA_NIM_API_KEY` | `nvapi-xxxxx...` |
-| `NVIDIA_NIM_BASE_URL` | `https://integrate.api.nvidia.com/v1` |
-| `NVIDIA_NIM_MODEL` | `meta/llama-3.1-70b-instruct` (or your chosen model) |
-| `ALLOWED_ORIGINS` | Your Vercel frontend URL, e.g. `https://revenue-recovery.vercel.app` |
-| `DEBUG` | `false` |
-
-**Vercel Dashboard (Frontend):**
-
-| Variable | Value |
-| -------- | ----- |
-| `NEXT_PUBLIC_API_URL` | Your Render backend URL, e.g. `https://revenue-recovery-backend.onrender.com` |
-
 ---
 
 **Status:** Core agent + full recovery workflow complete — built for **Track 03, Razorpay Buildathon 2026.** 🚀
