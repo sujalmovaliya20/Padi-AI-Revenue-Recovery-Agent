@@ -236,7 +236,6 @@ export default function DashboardPage() {
     { id: "approvals", label: "Pending High-Value Approvals", icon: UserCheck, count: pendingApprovals.length },
     { id: "promises", label: "Promise-to-Pay Tracker", icon: CalendarClock },
     { id: "impact", label: "Value Impact: With vs. Without Agent", icon: TrendingUp },
-    { id: "analysis", label: "Analysis", icon: PieChart },
     { id: "payments", label: "Payments", icon: TableIcon },
   ];
 
@@ -499,18 +498,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {activeTab === "analysis" && batchId && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                <FunnelChart status={statusData} metrics={metricsData} />
-                <ExceptionsView payments={payments} />
-              </div>
-            )}
-            
-            {activeTab === "analysis" && !batchId && (
-              <div className="text-center p-12 text-[var(--text-secondary)] font-body text-sm font-semibold border border-dashed border-[var(--border-default)] rounded-xl animate-in fade-in duration-300">
-                Run a batch to see the analysis and exception breakdown.
-              </div>
-            )}
+
 
             {activeTab === "payments" && batchId && (
               <div className="space-y-4 animate-in fade-in duration-300">
