@@ -1,4 +1,4 @@
-# 💸 Revenue Recovery Agent - Live :- https://ai-revenue-recovery-agent-phi.vercel.app/
+# 💸 Padi(Revenue Recovery Agent) - Live :- https://ai-revenue-recovery-agent-phi.vercel.app/
 
 > **Hackathon Prototype** — An AI agent that detects failed subscription/mandate payments, diagnoses root cause, and executes bounded recovery actions.
 
